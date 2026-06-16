@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoServe — Employee records</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand:      #1852FE;
+    --brand-soft: #EAF1FE;
+    --text:       #0E1A33;
+    --text-2:     #5A6B85;
+    --text-dim:   #626E83;
+    --page-bg:    #F0F2F7;
+    --card:       #FFFFFF;
+    --border:     #E4E9F2;
+    --nav:        #0B1B3A;
+    --green:      #16A34A;
+    --red:        #E63946;
+    --amber:      #E0A030;
+    --chip:       #F1F4F9;
+    --row-hover:  rgba(24, 82, 254, 0.06);
+    --shadow-md:  0 4px 6px rgba(0,0,0,.07);
+    --shadow-lg:  0 10px 24px rgba(0,0,0,.10);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 3px; }
+  html, body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--page-bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding: 24px; max-width: 1040px; margin-inline: auto; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow-md); padding: 12px 20px; margin-bottom: 20px;
+  }
+  .topbar img { height: 26px; display: block; }
+  .topbar .crumb { font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow-md); padding: 20px 20px 8px;
+  }
+
+  .page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; position: relative; }
+  h1 { font-size: 20px; line-height: 28px; font-weight: 600; }
+  .sub { font-size: 12px; color: var(--text-2); margin-bottom: 16px; }
+
+  #fxLink { font-size: 13px; color: var(--brand); text-decoration: none; font-weight: 500; }
+  #fxLink:hover { text-decoration: underline; }
+  #fxPanel {
+    position: absolute; right: 0; top: 100%; margin-top: 8px; z-index: 10;
+    width: 330px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 6px; box-shadow: var(--shadow-lg);
+  }
+  #fxPanel button {
+    display: block; width: 100%; text-align: left; border: none; background: transparent;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  }
+  #fxPanel button:hover { background: var(--chip); }
+  #fxPanel button.active { background: var(--brand-soft); }
+  #fxPanel .fx-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  #fxPanel .fx-desc { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+
+  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .btn-primary {
+    background: var(--brand); color: #fff; border-radius: 8px; padding: 0 18px;
+    font-size: 13px; font-weight: 600; height: 36px; transition: opacity .15s ease;
+  }
+  .btn-primary:hover { opacity: .9; }
+  .btn-primary:disabled { opacity: .5; cursor: default; }
+  .btn-secondary {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 0 16px; font-size: 13px; font-weight: 500; height: 36px;
+    transition: background .15s ease;
+  }
+  .btn-secondary:hover { background: var(--chip); }
+  #counter { font-size: 12px; color: var(--text-2); }
+
+  .tbl-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+  .tbl th {
+    text-align: left; font-weight: 600; color: var(--text-2); font-size: 12px;
+    padding: 0 12px; height: 40px; background: var(--chip);
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl td {
+    padding: 0 12px; height: 44px; color: var(--text);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tbl tbody tr:last-child td { border-bottom: none; }
+  .tbl tr.row {
+    opacity: 0;
+    transform: translateY(14px);
+    background-repeat: no-repeat;
+    transition: opacity 0.45s ease, transform 0.45s ease, background-size 0.35s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  }
+  .tbl tr.row.in { opacity: 1; transform: translateY(0); }
+
+  .fx-basic tr.row.in:hover { background-color: var(--row-hover); }
+
+  .fx-center tr.row { background-image: linear-gradient(var(--row-hover), var(--row-hover)); background-position: center; background-size: 0% 100%; }
+  .fx-center tr.row.in:hover { background-size: 100% 100%; }
+
+  .fx-spot tr.row.in { background-image: radial-gradient(180px 100% at var(--mx, -100%) 50%, var(--row-hover), transparent 70%); }
+
+  .fx-sweep tr.row { background-image: linear-gradient(var(--row-hover), var(--row-hover)); background-position: left center; background-size: 0% 100%; }
+  .fx-sweep tr.row.in:hover { background-size: 100% 100%; }
+
+  .fx-bar td:first-child { transition: padding-left 0.25s ease; }
+  .fx-bar tr.row.in:hover { box-shadow: inset 3px 0 0 var(--brand); background-color: var(--row-hover); }
+  .fx-bar tr.row.in:hover td:first-child { padding-left: 24px; }
+
+  .fx-lift tr.row.in {
+    background-image: linear-gradient(var(--brand), var(--brand));
+    background-position: center bottom;
+    background-size: 0% 2px;
+    background-repeat: no-repeat;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease, background-size 0.2s ease;
+  }
+  .fx-lift tr.row.in:hover {
+    transform: translateY(-2px) scaleY(1.11);
+    transform-origin: center;
+    background-color: var(--card);
+    background-size: 100% 2px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1;
+  }
+  .fx-lift tr.row.in:hover td { font-size: 15px; transform: scaleY(0.9); }
+
+  .fx-scale tr.row.in:hover { transform: scale(1.012); background-color: var(--row-hover); }
+
+  .fx-under tr.row {
+    background-image: linear-gradient(var(--row-hover), var(--row-hover)), linear-gradient(var(--brand), var(--brand));
+    background-position: center, center bottom;
+    background-size: 0% 100%, 0% 2px;
+  }
+  .fx-under tr.row.in:hover { background-size: 100% 100%, 100% 2px; }
+
+  @keyframes shimmer-pass {
+    0%   { background-position: -250% center; }
+    100% { background-position: 250% center; }
+  }
+  .fx-shimmer tr.row.in:hover {
+    background-image: linear-gradient(100deg, transparent 20%, rgba(24,82,254,0.14) 40%, rgba(255,255,255,0.65) 50%, rgba(24,82,254,0.14) 60%, transparent 80%);
+    background-size: 250% 100%;
+    animation: shimmer-pass 0.9s ease infinite;
+  }
+
+  .fx-split tr.row.in {
+    background-image: linear-gradient(var(--brand), var(--brand)), linear-gradient(var(--brand), var(--brand));
+    background-position: center top, center bottom;
+    background-size: 0% 2px, 0% 2px;
+    background-repeat: no-repeat;
+  }
+  .fx-split tr.row.in:hover {
+    background-size: 100% 2px, 100% 2px;
+    background-color: var(--row-hover);
+  }
+
+  .fx-glow tr.row.in { transition: box-shadow 0.2s ease, background-color 0.2s ease; }
+  .fx-glow tr.row.in:hover {
+    background-color: var(--row-hover);
+    box-shadow: 0 0 0 1.5px rgba(24,82,254,0.35), 0 4px 18px rgba(24,82,254,0.22);
+    z-index: 1;
+  }
+
+  .chip { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  #placeholder { text-align: center; color: var(--text-2); height: 120px; }
+  .mono { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="geoserve_logo_color.png" alt="GeoServe">
+  <span class="crumb">Crew · Employee records</span>
+</div>
+
+<div class="card">
+  <div class="page-head">
+    <div>
+      <h1>Employee records</h1>
+    </div>
+    <a id="fxLink" href="#">Hover effects &#9662;</a>
+    <div id="fxPanel" hidden></div>
+  </div>
+  <p class="sub">40 crew members across departments and home ports.</p>
+
+  <div class="toolbar">
+    <button id="loadBtn" class="btn-primary">Load data</button>
+    <button id="resetBtn" class="btn-secondary" style="display:none;">Replay</button>
+    <span id="counter">0 / 40 rows loaded</span>
+  </div>
+
+  <div class="tbl-wrap">
+  <table class="tbl fx-center" id="tbl">
+    <colgroup>
+      <col style="width:6%"><col style="width:16%"><col style="width:14%"><col style="width:13%"><col style="width:13%"><col style="width:12%"><col style="width:13%"><col style="width:13%">
+    </colgroup>
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Department</th><th>Role</th><th>City</th><th>Hired</th><th>Salary</th><th>Status</th></tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="8" id="placeholder">Click "Load data" to populate 40 rows</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+<script>
+const first = ['Ava','Liam','Maya','Noah','Zoe','Ethan','Isla','Owen','Ruby','Caleb','Nora','Felix','Iris','Hugo','Lena','Omar','Tara','Jude','Mira','Axel','Cleo','Dean','Esme','Finn','Gia','Ivan','June','Kian','Lola','Marc','Nina','Otto','Pia','Quinn','Rosa','Sam','Tess','Uma','Vik','Wren'];
+const last = ['Chen','Patel','Kim','Lopez','Nguyen','Silva','Khan','Mori','Ali','Park','Diaz','Wong','Reyes','Sato','Cruz','Mehta','Tan','Vega','Ito','Rao','Bell','Ford','Gray','Hale','Lane','Nash','Page','Reed','Shaw','Webb','York','Cole','Dunn','Frost','Hart','Kerr','Lowe','Marsh','Snow','Wells'];
+const depts = ['Engineering','Design','Marketing','Sales','Finance','Support','Product','Legal'];
+const roles = ['Analyst','Manager','Engineer','Designer','Lead','Specialist','Director','Associate'];
+const cities = ['London','Tokyo','Berlin','Austin','Sydney','Toronto','Mumbai','Madrid'];
+const statuses = [
+  {label:'Active', bg:'#D3F3DF', fg:'#16A34A'},
+  {label:'On leave', bg:'#FEF9C3', fg:'#92740C'},
+  {label:'Remote', bg:'#DBEAFE', fg:'#1852FE'},
+  {label:'Contract', bg:'#F1F4F9', fg:'#5A6B85'}
+];
+const rows = [];
+for (let i = 0; i < 40; i++) {
+  const st = statuses[(i * 7 + 3) % 4];
+  rows.push([
+    String(i + 1).padStart(2, '0'),
+    first[i] + ' ' + last[(i * 13 + 5) % 40],
+    depts[(i * 5 + 2) % 8],
+    roles[(i * 3 + 1) % 8],
+    cities[(i * 11 + 4) % 8],
+    (2017 + (i * 3) % 9) + '-' + String((i * 5) % 12 + 1).padStart(2, '0'),
+    '$' + (52 + (i * 17) % 98) + ',000',
+    st
+  ]);
+}
+const tbody = document.getElementById('tbody');
+const counter = document.getElementById('counter');
+const loadBtn = document.getElementById('loadBtn');
+const resetBtn = document.getElementById('resetBtn');
+let running = false;
+
+function buildRows() {
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.className = 'row';
+    r.forEach((cell, ci) => {
+      const td = document.createElement('td');
+      if (ci === 7) {
+        const span = document.createElement('span');
+        span.className = 'chip';
+        span.textContent = cell.label;
+        span.style.background = cell.bg;
+        span.style.color = cell.fg;
+        td.appendChild(span);
+      } else {
+        td.textContent = cell;
+        if (ci === 6) td.classList.add('mono');
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function animate() {
+  if (running) return;
+  running = true;
+  loadBtn.disabled = true;
+  resetBtn.style.display = 'none';
+  buildRows();
+  const trs = tbody.querySelectorAll('tr.row');
+  let shown = 0;
+  trs.forEach((tr, i) => {
+    setTimeout(() => {
+      tr.classList.add('in');
+      shown++;
+      counter.textContent = shown + ' / 40 rows loaded';
+      if (shown === 40) {
+        running = false;
+        loadBtn.disabled = false;
+        loadBtn.textContent = 'Load again';
+        resetBtn.style.display = '';
+      }
+    }, 70 * i);
+  });
+}
+
+const table = document.getElementById('tbl');
+const fxLink = document.getElementById('fxLink');
+const fxPanel = document.getElementById('fxPanel');
+const effects = [
+  { id: 'fx-basic', name: 'Basic hover strip', desc: 'Standard hover colour, no animation' },
+  { id: 'fx-center', name: 'Center fill', desc: 'Highlight expands from the middle outward' },
+  { id: 'fx-spot', name: 'Cursor spotlight', desc: 'A soft glow follows your mouse along the row' },
+  { id: 'fx-sweep', name: 'Directional sweep', desc: 'Fills left to right like a progress bar' },
+  { id: 'fx-bar', name: 'Accent bar + indent', desc: 'Blue edge appears, content nudges right' },
+  { id: 'fx-lift', name: 'Lift', desc: 'Row floats up with a soft shadow' },
+  { id: 'fx-scale', name: 'Subtle zoom', desc: 'Row grows slightly toward you' },
+  { id: 'fx-under', name: 'Underline reveal', desc: 'A line draws outward from the center below' },
+  { id: 'fx-shimmer', name: 'Shimmer sweep', desc: 'A moving light passes across the row' },
+  { id: 'fx-split', name: 'Split border', desc: 'Top and bottom lines draw in from the center' },
+  { id: 'fx-glow', name: 'Row glow', desc: 'Soft blue halo radiates around the row' }
+];
+effects.forEach(fx => {
+  const b = document.createElement('button');
+  b.dataset.fx = fx.id;
+  if (fx.id === 'fx-center') b.classList.add('active');
+  b.innerHTML = '<div class="fx-name">' + fx.name + '</div><div class="fx-desc">' + fx.desc + '</div>';
+  b.addEventListener('click', () => {
+    effects.forEach(e => table.classList.remove(e.id));
+    table.classList.add(fx.id);
+    fxPanel.querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn === b));
+  });
+  fxPanel.appendChild(b);
+});
+fxLink.addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  fxPanel.hidden = !fxPanel.hidden;
+});
+document.addEventListener('click', e => {
+  if (!fxPanel.hidden && !fxPanel.contains(e.target) && !fxLink.contains(e.target)) fxPanel.hidden = true;
+});
+tbody.addEventListener('mousemove', e => {
+  if (!table.classList.contains('fx-spot')) return;
+  const tr = e.target.closest('tr.row');
+  if (!tr) return;
+  const r = tr.getBoundingClientRect();
+  tr.style.setProperty('--mx', Math.round((e.clientX - r.left) / r.width * 100) + '%');
+});
+tbody.addEventListener('mouseleave', () => {
+  tbody.querySelectorAll('tr.row').forEach(tr => tr.style.removeProperty('--mx'));
+});
+
+loadBtn.addEventListener('click', animate);
+resetBtn.addEventListener('click', () => {
+  tbody.querySelectorAll('tr.row').forEach(tr => tr.classList.remove('in'));
+  counter.textContent = '0 / 40 rows loaded';
+  setTimeout(animate, 350);
+});
+</script>
+</body>
+</html>
