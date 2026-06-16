@@ -181,18 +181,18 @@
 <body>
 <div class="topbar">
   <img src="geoserve_logo_color.png" alt="GeoServe">
-  <span class="crumb">Crew · Employee records</span>
+  <span class="crumb">Fleet · Vessel registry</span>
 </div>
 
 <div class="card">
   <div class="page-head">
     <div>
-      <h1>Employee records</h1>
+      <h1>Vessel registry</h1>
     </div>
     <a id="fxLink" href="#">Hover effects &#9662;</a>
     <div id="fxPanel" hidden></div>
   </div>
-  <p class="sub">40 crew members across departments and home ports.</p>
+  <p class="sub">40 vessels across the fleet with live voyage status.</p>
 
   <div class="toolbar">
     <button id="loadBtn" class="btn-primary">Load data</button>
@@ -203,40 +203,43 @@
   <div class="tbl-wrap">
   <table class="tbl fx-center" id="tbl">
     <colgroup>
-      <col style="width:6%"><col style="width:16%"><col style="width:14%"><col style="width:13%"><col style="width:13%"><col style="width:12%"><col style="width:13%"><col style="width:13%">
+      <col style="width:12%"><col style="width:16%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:8%"><col style="width:12%">
     </colgroup>
     <thead>
-      <tr><th>ID</th><th>Name</th><th>Department</th><th>Role</th><th>City</th><th>Hired</th><th>Salary</th><th>Status</th></tr>
+      <tr><th>IMO</th><th>Vessel</th><th>Type</th><th>Flag</th><th>Speed</th><th>Next port</th><th>ETA</th><th>Status</th></tr>
     </thead>
     <tbody id="tbody">
-      <tr><td colspan="8" id="placeholder">Click "Load data" to populate 40 rows</td></tr>
+      <tr><td colspan="8" id="placeholder">Click "Load data" to populate 40 vessels</td></tr>
     </tbody>
   </table>
   </div>
 </div>
 <script>
-const first = ['Ava','Liam','Maya','Noah','Zoe','Ethan','Isla','Owen','Ruby','Caleb','Nora','Felix','Iris','Hugo','Lena','Omar','Tara','Jude','Mira','Axel','Cleo','Dean','Esme','Finn','Gia','Ivan','June','Kian','Lola','Marc','Nina','Otto','Pia','Quinn','Rosa','Sam','Tess','Uma','Vik','Wren'];
-const last = ['Chen','Patel','Kim','Lopez','Nguyen','Silva','Khan','Mori','Ali','Park','Diaz','Wong','Reyes','Sato','Cruz','Mehta','Tan','Vega','Ito','Rao','Bell','Ford','Gray','Hale','Lane','Nash','Page','Reed','Shaw','Webb','York','Cole','Dunn','Frost','Hart','Kerr','Lowe','Marsh','Snow','Wells'];
-const depts = ['Engineering','Design','Marketing','Sales','Finance','Support','Product','Legal'];
-const roles = ['Analyst','Manager','Engineer','Designer','Lead','Specialist','Director','Associate'];
-const cities = ['London','Tokyo','Berlin','Austin','Sydney','Toronto','Mumbai','Madrid'];
+const prefix = ['MV','MV','MT','MV','MT','MV','MV','MT'];
+const names = ['Andes','Baltic','Coral','Delta','Eagle','Falcon','Garnet','Horizon','Indus','Juno','Kestrel','Lyra','Meridian','Nordic','Orion','Pacifica','Quasar','Regent','Sirius','Tempest','Utopia','Vega','Windward','Xenon','Yukon','Zephyr','Aurora','Borealis','Cascade','Drakon','Everest','Fjord','Glacier','Harbinger','Iberia','Jupiter','Kraken','Leviathan','Mistral','Nautilus'];
+const types = ['Tanker','Bulk Carrier','Container','RoRo','LNG Carrier','Tanker','Container','Bulk Carrier'];
+const flags = ['Panama','Liberia','Marshall Is.','Singapore','Malta','Greece','Cyprus','Bahamas'];
+const ports = ['Rotterdam','Singapore','Hamburg','Dubai','Shanghai','Houston','Busan','Santos'];
 const statuses = [
-  {label:'Active', bg:'#D3F3DF', fg:'#16A34A'},
-  {label:'On leave', bg:'#FEF9C3', fg:'#92740C'},
-  {label:'Remote', bg:'#DBEAFE', fg:'#1852FE'},
-  {label:'Contract', bg:'#F1F4F9', fg:'#5A6B85'}
+  {label:'Underway', bg:'#D3F3DF', fg:'#16A34A'},
+  {label:'Anchored', bg:'#F1F4F9', fg:'#5A6B85'},
+  {label:'In Port', bg:'#DBEAFE', fg:'#1852FE'},
+  {label:'Drifting', bg:'#FEF9C3', fg:'#92740C'}
 ];
 const rows = [];
 for (let i = 0; i < 40; i++) {
   const st = statuses[(i * 7 + 3) % 4];
+  const inPort = st.label === 'In Port' || st.label === 'Anchored';
+  const speed = inPort ? '—' : (8 + (i * 3) % 12) + '.' + (i % 10) + ' kn';
+  const etaDays = inPort ? '—' : ((i % 9) + 1) + 'd';
   rows.push([
-    String(i + 1).padStart(2, '0'),
-    first[i] + ' ' + last[(i * 13 + 5) % 40],
-    depts[(i * 5 + 2) % 8],
-    roles[(i * 3 + 1) % 8],
-    cities[(i * 11 + 4) % 8],
-    (2017 + (i * 3) % 9) + '-' + String((i * 5) % 12 + 1).padStart(2, '0'),
-    '$' + (52 + (i * 17) % 98) + ',000',
+    '9' + String(100000 + (i * 7919) % 899999),
+    prefix[i % 8] + ' ' + names[i],
+    types[(i * 5 + 2) % 8],
+    flags[(i * 11 + 4) % 8],
+    speed,
+    inPort ? '—' : ports[(i * 3 + 1) % 8],
+    etaDays,
     st
   ]);
 }
@@ -262,7 +265,7 @@ function buildRows() {
         td.appendChild(span);
       } else {
         td.textContent = cell;
-        if (ci === 6) td.classList.add('mono');
+        if (ci === 0 || ci === 4) td.classList.add('mono');
       }
       tr.appendChild(td);
     });
