@@ -114,8 +114,6 @@
   .fx-center tr.row { background-image: linear-gradient(var(--row-hover), var(--row-hover)); background-position: center; background-size: 0% 100%; }
   .fx-center tr.row.in:hover { background-size: 100% 100%; }
 
-  .fx-spot tr.row.in { background-image: radial-gradient(180px 100% at var(--mx, -100%) 50%, var(--row-hover), transparent 70%); }
-
   .fx-sweep tr.row { background-image: linear-gradient(var(--row-hover), var(--row-hover)); background-position: left center; background-size: 0% 100%; }
   .fx-sweep tr.row.in:hover { background-size: 100% 100%; }
 
@@ -306,7 +304,6 @@ const fxPanel = document.getElementById('fxPanel');
 const effects = [
   { id: 'fx-basic', name: 'Basic hover strip', desc: 'Standard hover colour, no animation' },
   { id: 'fx-center', name: 'Center fill', desc: 'Highlight expands from the middle outward' },
-  { id: 'fx-spot', name: 'Cursor spotlight', desc: 'A soft glow follows your mouse along the row' },
   { id: 'fx-sweep', name: 'Directional sweep', desc: 'Fills left to right like a progress bar' },
   { id: 'fx-bar', name: 'Accent bar + indent', desc: 'Blue edge appears, content nudges right' },
   { id: 'fx-lift', name: 'Lift', desc: 'Row floats up with a soft shadow' },
@@ -336,17 +333,6 @@ fxLink.addEventListener('click', e => {
 document.addEventListener('click', e => {
   if (!fxPanel.hidden && !fxPanel.contains(e.target) && !fxLink.contains(e.target)) fxPanel.hidden = true;
 });
-tbody.addEventListener('mousemove', e => {
-  if (!table.classList.contains('fx-spot')) return;
-  const tr = e.target.closest('tr.row');
-  if (!tr) return;
-  const r = tr.getBoundingClientRect();
-  tr.style.setProperty('--mx', Math.round((e.clientX - r.left) / r.width * 100) + '%');
-});
-tbody.addEventListener('mouseleave', () => {
-  tbody.querySelectorAll('tr.row').forEach(tr => tr.style.removeProperty('--mx'));
-});
-
 loadBtn.addEventListener('click', animate);
 resetBtn.addEventListener('click', () => {
   tbody.querySelectorAll('tr.row').forEach(tr => tr.classList.remove('in'));
